@@ -106,7 +106,7 @@ public class HealthCheckManager {
 
                 } catch (Exception e) {
 
-                    System.err.println("âš ï¸ Primary server down. Switching to backup...");
+                    System.err.println("Primary server down. Switching to backup...");
 
                     primaryServerActive.set(false);
 
