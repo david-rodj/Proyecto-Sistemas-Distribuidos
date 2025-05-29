@@ -1,4 +1,4 @@
-package com.example;
+package com.backupserver;
 
 
 
@@ -42,7 +42,7 @@ import java.util.ArrayList;
 
 
 
-public class ServidorCentral {
+public class BackupCentralServer {
 
 
 
