@@ -86,15 +86,37 @@ public class DepartmentSchool {
 
                     // Esperado: programa,salones,laboratorios
 
-                    String[] parts = request.split(",");
+                    String[] parts = solicitud.split(",");
 
-                    if (parts.length == 3) {
+		    if (parts.length != 4) {
 
-                        String requestId = UUID.randomUUID().toString();
+		        academicSocket.send("ERROR,Formato inválido desde AcademicProgram");
 
-                        String enrichedRequest = String.join(",", requestId, semester, facultyName,
+		        return;
 
-                                                              parts[0], parts[1], parts[2]);
+		    }
+
+
+
+		    // Generar requestId único y construir mensaje completo
+
+		    String requestId = UUID.randomUUID().toString();
+
+		    String enrichedRequest = String.join(",",
+
+			requestId,           // ID único para correlación
+
+			parts[1],           // semestre (de AcademicProgram)
+
+			facultyName,        // facultad (de este DepartmentSchool)
+
+			parts[0],           // programa
+
+			parts[2],           // número de salones
+
+			parts[3]            // número de laboratorios
+
+		    );
 
 
 
@@ -112,7 +134,7 @@ public class DepartmentSchool {
 
                         frontend.send("", ZMQ.SNDMORE);
 
-                        frontend.send("Formato inválido. Se esperaban: programa,salones,laboratorios");
+                        frontend.send("Formato inválido. Se esperaban: programa,salones,laboratorios,semestre");
 
                     }
 
