@@ -1,99 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0"
-
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
-
-         http://maven.apache.org/xsd/maven-4.0.0.xsd">
-
-
-
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    
     <modelVersion>4.0.0</modelVersion>
-
+    
     <groupId>com.healthcheck</groupId>
-
     <artifactId>healthcheck-broker</artifactId>
-
     <version>1.0-SNAPSHOT</version>
-
-
-
+    
     <properties>
-
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-
         <maven.compiler.source>17</maven.compiler.source>
-
         <maven.compiler.target>17</maven.compiler.target>
-
     </properties>
-
-
-
+    
     <dependencies>
-
-        <!-- ZeroMQ Java binding -->
-
+        <!-- ZeroMQ Java binding - versión actualizada -->
         <dependency>
-
             <groupId>org.zeromq</groupId>
-
             <artifactId>jeromq</artifactId>
-
-            <version>0.5.2</version>
-
+            <version>0.5.3</version>
         </dependency>
-
     </dependencies>
-
-
-
+    
     <build>
-
         <plugins>
-
-            <!-- Compilar con Java 17 -->
-
+            <!-- Plugin de compilación con versión actualizada -->
             <plugin>
-
                 <groupId>org.apache.maven.plugins</groupId>
-
                 <artifactId>maven-compiler-plugin</artifactId>
-
-                <version>3.10.1</version>
-
+                <version>3.11.0</version>
                 <configuration>
-
                     <source>17</source>
-
                     <target>17</target>
-
                 </configuration>
-
             </plugin>
-
-
-
-            <!-- Ejecutar el HealthCheckManager -->
-
+            
+            <!-- Plugin exec corregido -->
             <plugin>
-
                 <groupId>org.codehaus.mojo</groupId>
-
                 <artifactId>exec-maven-plugin</artifactId>
-
                 <version>3.1.0</version>
-
                 <configuration>
-
-                    <mainClass>com.healthcheck.HealthCheckManager</mainClass>
-
+                    <!-- CORREGIDO: El nombre de la clase principal -->
+                    <mainClass>com.healthcheck.AsyncHealthCheckManager</mainClass>
                 </configuration>
-
             </plugin>
 
+            <!-- Plugin assembly para crear JAR ejecutable -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <version>3.4.2</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                        <configuration>
+                            <archive>
+                                <manifest>
+                                    <mainClass>com.healthcheck.AsyncHealthCheckManager</mainClass>
+                                </manifest>
+                            </archive>
+                            <descriptorRefs>
+                                <descriptorRef>jar-with-dependencies</descriptorRef>
+                            </descriptorRefs>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
-
     </build>
-
 </project>
