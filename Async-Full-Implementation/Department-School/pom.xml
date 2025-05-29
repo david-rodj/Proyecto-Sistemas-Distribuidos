@@ -50,7 +50,7 @@
                             <archive>
                                 <manifest>
                                     <!-- CORREGIDO: El nombre de la clase principal -->
-                                    <mainClass>com.departmentschool.AsyncDepartmentSchool</mainClass>
+                                    <mainClass>com.departmentschool.DepartmentSchool</mainClass>
                                 </manifest>
                             </archive>
                             <descriptorRefs>
@@ -67,7 +67,7 @@
                 <artifactId>exec-maven-plugin</artifactId>
                 <version>3.1.0</version>
                 <configuration>
-                    <mainClass>com.departmentschool.AsyncDepartmentSchool</mainClass>
+                    <mainClass>com.departmentschool.DepartmentSchool</mainClass>
                 </configuration>
             </plugin>
         </plugins>

@@ -44,7 +44,7 @@
                 <version>3.1.0</version>
                 <configuration>
                     <!-- CORREGIDO: El nombre de la clase principal -->
-                    <mainClass>com.healthcheck.AsyncHealthCheckManager</mainClass>
+                    <mainClass>com.healthcheck.HealthCheckManager</mainClass>
                 </configuration>
             </plugin>
 
@@ -62,7 +62,7 @@
                         <configuration>
                             <archive>
                                 <manifest>
-                                    <mainClass>com.healthcheck.AsyncHealthCheckManager</mainClass>
+                                    <mainClass>com.healthcheck.HealthCheckManager</mainClass>
                                 </manifest>
                             </archive>
                             <descriptorRefs>
