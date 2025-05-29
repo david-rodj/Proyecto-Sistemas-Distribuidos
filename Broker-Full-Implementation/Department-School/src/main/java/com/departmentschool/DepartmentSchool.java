@@ -10,21 +10,15 @@ import org.zeromq.ZMQ;
 
 
 
-import java.util.Scanner;
-
-import java.util.UUID;
-
-
-
 public class DepartmentSchool {
 
 
 
     public static void main(String[] args) {
 
-        if (args.length != 3) {
+        if (args.length != 2) {
 
-            System.out.println("Uso: java DepartmentSchool <FacultyName> <Semester> <Port>");
+            System.out.println("Uso: java DepartmentSchool <FacultyName> <Semester>");
 
             return;
 
@@ -36,63 +30,67 @@ public class DepartmentSchool {
 
         String semester = args[1];
 
-        int port = Integer.parseInt(args[2]);
-
-
+        String departmentPort = "5554";
 
         String brokerAddress = "tcp://localhost:5555"; // HealthCheckManager
 
+
+
         try (ZContext context = new ZContext()) {
 
-            ZMQ.Socket socket = context.createSocket(SocketType.REQ);
+            // Socket REP para recibir de AcademicProgram
 
-            socket.connect(brokerAddress);
+            ZMQ.Socket academicSocket = context.createSocket(SocketType.REP);
 
+            academicSocket.bind("tcp://*:" + departmentPort);
 
-
-            Scanner scanner = new Scanner(System.in);
-
-            while (true) {
-
-                System.out.print("Nombre del programa académico: ");
-
-                String programa = scanner.nextLine();
+            System.out.println("Esperando solicitudes de AcademicProgram en puerto " + departmentPort);
 
 
 
-                System.out.print("Cantidad de salones: ");
+            // Socket REQ para reenviar al HealthCheckManager
 
-                int salones = Integer.parseInt(scanner.nextLine());
+            ZMQ.Socket brokerSocket = context.createSocket(SocketType.REQ);
 
+            brokerSocket.connect(brokerAddress);
 
-
-                System.out.print("Cantidad de laboratorios: ");
-
-                int labs = Integer.parseInt(scanner.nextLine());
+            System.out.println("Conectado al HealthCheckManager en " + brokerAddress);
 
 
 
-                String requestId = UUID.randomUUID().toString();
+            while (!Thread.currentThread().isInterrupted()) {
 
-                String mensaje = String.join(",",
+                // Recibir solicitud del programa académico
 
-                        requestId, semester, facultyName, programa,
+                String solicitud = academicSocket.recvStr();
 
-                        String.valueOf(salones), String.valueOf(labs)
-
-                );
+                System.out.println("Recibido de AcademicProgram: " + solicitud);
 
 
 
-                System.out.println("📤 Enviando solicitud al broker...");
+                // Insertar semestre y facultad en el mensaje (ID, semestre, facultad, programa, salones, labs)
 
-                socket.send(mensaje);
+                String[] parts = solicitud.split(",");
 
+                if (parts.length == 5) {
 
+                    String withContext = parts[0] + "," + semester + "," + facultyName + "," +
 
-                String respuesta = socket.recvStr();
+                                         parts[1] + "," + parts[2] + "," + parts[3] + "," + parts[4];
 
-                System.out.println("📨 Respuesta: " + respuesta);
+                    brokerSocket.send(withContext);
+
+                    String respuesta = brokerSocket.recvStr();
+
+                    System.out.println("Respuesta del servidor: " + respuesta);
+
+                    academicSocket.send(respuesta);
+
+                } else {
+
+                    academicSocket.send("Formato inválido desde AcademicProgram");
+
+                }
 
             }
 
@@ -101,7 +99,5 @@ public class DepartmentSchool {
     }
 
 }
-
-
 
 
