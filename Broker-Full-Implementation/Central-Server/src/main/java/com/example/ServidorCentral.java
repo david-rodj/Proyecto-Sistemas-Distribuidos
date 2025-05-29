@@ -31,7 +31,7 @@ public class ServidorCentral {
 
         try (ZContext context = new ZContext()) {
             ZMQ.Socket worker = context.createSocket(SocketType.DEALER);
-            worker.connect("tcp://localhost:5556");
+            worker.bind("tcp://*:5556");
 
             System.out.println("Worker conectado al broker. Esperando solicitudes...");
 
