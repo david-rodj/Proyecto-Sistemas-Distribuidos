@@ -10,9 +10,6 @@
     <version>1.0.0</version>
     <packaging>jar</packaging>
 
-    <name>Central Backup Server</name>
-    <description>Backup server for the distributed faculty system</description>
-
     <properties>
         <maven.compiler.source>11</maven.compiler.source>
         <maven.compiler.target>11</maven.compiler.target>
