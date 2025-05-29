@@ -11,7 +11,7 @@ import java.util.Map;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
-public class AsyncHealthCheckManager {
+public class HealthCheckManager {
 
     private static final String PRIMARY_SERVER = "tcp://10.43.103.67:5556";
     private static final String BACKUP_SERVER = "tcp://10.43.96.42:5556";

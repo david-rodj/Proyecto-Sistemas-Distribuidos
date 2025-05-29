@@ -8,7 +8,7 @@ import java.util.concurrent.*;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
-public class AsyncDepartmentSchool {
+public class DepartmentSchool {
     
     private static final int ACADEMIC_PROGRAM_PORT = 5554;
     private static final String HEALTHCHECK_ADDRESS = "tcp://localhost:5555";
