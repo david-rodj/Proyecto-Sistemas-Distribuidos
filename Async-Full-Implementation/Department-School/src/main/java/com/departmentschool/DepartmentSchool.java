@@ -9,10 +9,13 @@ import java.util.UUID;
 
 public class DepartmentSchool {
 
+    public static String identityglobal;
+
     public static void main(String[] args) {
         if (args.length != 2) {
-            System.out.println("Uso: java DepartmentSchool <FacultyName> <Semester>");
-            return;
+            //System.out.println("Uso: java DepartmentSchool <FacultyName> <Semester>");
+            //return;
+            args = new String[]{"Facultad de Ingenieria", "2025-10"}; // Para pruebas
         }
 
         String facultyName = args[0];
@@ -35,55 +38,51 @@ public class DepartmentSchool {
 
             while (!Thread.currentThread().isInterrupted()) {
                 poller.poll();
-		byte[] identity = frontend.recv(0);
+
+                // Mensaje entrante de AcademicProgram
                 if (poller.pollin(0)) {
-                    
+                    byte[] identity = frontend.recv(0);
                     frontend.recv(0); // frame vacío
                     String request = frontend.recvStr();
 
-                    // Esperado: programa,salones,laboratorios
+                    System.out.println(new String(identity));
+                    identityglobal = new String(identity);
+
+                    // Esperado: programa,salones,laboratorios,semestre
                     String[] parts = request.split(",");
                     if (parts.length != 4) {
-                        // Suponiendo que academicSocket esté definida
-                        // Si no, este código dará error en tiempo de compilación
-                        // academicSocket.send("ERROR,Formato inválido desde AcademicProgram");
-                        System.out.println("Formato inválido");
-                        return;
+                        frontend.send(identity, ZMQ.SNDMORE);
+                        frontend.send("", ZMQ.SNDMORE);
+                        frontend.send("Formato inválido. Se esperaban: programa,salones,laboratorios,semestre");
+                        continue;
                     }
 
                     // Generar requestId único y construir mensaje completo
                     String requestId = UUID.randomUUID().toString();
                     String enrichedRequest = String.join(",",
                             requestId,           // ID único para correlación
-                            parts[1],           // semestre (de AcademicProgram)
-                            facultyName,        // facultad (de este DepartmentSchool)
-                            parts[0],           // programa
-                            parts[2],           // número de salones
-                            parts[3]            // número de laboratorios
+                            parts[1],            // semestre (de AcademicProgram)
+                            facultyName,         // facultad (de este DepartmentSchool)
+                            parts[0],            // programa
+                            parts[2],            // número de salones
+                            parts[3]             // número de laboratorios
                     );
 
                     backend.send(identity, ZMQ.SNDMORE);
                     //backend.send("", ZMQ.SNDMORE);
                     backend.send(enrichedRequest);
                     System.out.println("📤 Enviada al servidor: " + enrichedRequest);
+                }
 
-                } else {
-                    frontend.send(identity, ZMQ.SNDMORE);
-                    frontend.send("", ZMQ.SNDMORE);
-                    frontend.send("Formato inválido. Se esperaban: programa,salones,laboratorios,semestre");
+                // Respuesta del HealthCheckManager
+                if (poller.pollin(1)) {
+                    backend.recv(0); // identity (descártalo)
+                    byte[] reply = backend.recv(0); // este es el mensaje real
+
+                    frontend.send(reply); // Solo un frame al cliente REQ
+                    System.out.println("📨 Enviada a AcademicProgram: " + new String(reply));
                 }
             } // fin del while
-
-            if (poller.pollin(1)) {
-                byte[] identity = backend.recv(0);
-                backend.recv(0); // frame vacío
-                String reply = backend.recvStr();
-
-                frontend.send(identity, ZMQ.SNDMORE);
-                frontend.send("", ZMQ.SNDMORE);
-                frontend.send(reply);
-                System.out.println("📨 Enviada a AcademicProgram: " + reply);
-            }
 
         } // fin del try-with-resources
     } // fin del método main
