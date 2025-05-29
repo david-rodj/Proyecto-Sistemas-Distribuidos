@@ -1,5 +1,4 @@
 package com.departmentschool;
-
 import org.zeromq.SocketType;
 import org.zeromq.ZContext;
 import org.zeromq.ZMQ;
@@ -22,21 +21,21 @@ public class DepartmentSchool {
     private String facultyName;
     private String semester;
     
-    public AsyncDepartmentSchool(String facultyName, String semester) {
+    public DepartmentSchool(String facultyName, String semester) {
         this.facultyName = facultyName;
         this.semester = semester;
     }
 
     public static void main(String[] args) {
         if (args.length != 2) {
-            System.out.println("Uso: java AsyncDepartmentSchool <FacultyName> <Semester>");
+            System.out.println("Uso: java DepartmentSchool <FacultyName> <Semester>");
             return;
         }
 
         String facultyName = args[0];
         String semester = args[1];
         
-        AsyncDepartmentSchool department = new AsyncDepartmentSchool(facultyName, semester);
+        DepartmentSchool department = new DepartmentSchool(facultyName, semester);
         department.start();
     }
 

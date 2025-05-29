@@ -56,7 +56,7 @@ public class HealthCheckManager {
     }
 
     public static void main(String[] args) {
-        new AsyncHealthCheckManager().start();
+        new HealthCheckManager().start();
     }
 
     public void start() {
