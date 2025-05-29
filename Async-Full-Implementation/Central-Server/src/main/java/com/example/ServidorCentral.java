@@ -30,8 +30,8 @@ public class ServidorCentral {
         }
 
         try (ZContext context = new ZContext()) {
-            // Cambio: ROUTER en lugar de DEALER para manejar identidades de clientes
-            ZMQ.Socket worker = context.createSocket(SocketType.ROUTER);
+            // Cambio: REP socket para recibir requests del HealthCheck
+            ZMQ.Socket worker = context.createSocket(SocketType.REP);
             worker.bind("tcp://*:5556");
 
             // Hilo de healthcheck que responde "PONG" a "PING" en puerto 6000
@@ -51,20 +51,19 @@ public class ServidorCentral {
                 }
             }).start();
 
-            System.out.println("Worker ROUTER activo en puerto 5556. Esperando solicitudes...");
+            System.out.println("Worker REP activo en puerto 5556. Esperando solicitudes...");
 
             while (!Thread.currentThread().isInterrupted()) {
-                // ROUTER recibe: [identity][empty][message]
-                byte[] identidad = worker.recv(0);
-                byte[] empty = worker.recv(0); // frame vacío
+                // REP recibe mensaje directamente
                 String mensaje = worker.recvStr(0);
 
+                // Procesar en thread pool para mantener asincronía
                 pool.execute(() -> {
                     String respuesta = procesarSolicitud(mensaje);
-                    // ROUTER envía: [identity][empty][response]
-                    worker.send(identidad, ZMQ.SNDMORE);
-                    worker.send("", ZMQ.SNDMORE);
-                    worker.send(respuesta);
+                    // REP envía respuesta directamente
+                    synchronized (worker) {
+                        worker.send(respuesta);
+                    }
                 });
             }
         }
@@ -72,18 +71,18 @@ public class ServidorCentral {
 
     private static String procesarSolicitud(String data) {
         try {
-            // Ahora esperamos: requestId,semestre,facultad,programa,cantSalones,cantLabs
+            // Esperamos: requestId,semestre,facultad,programa,cantSalones,cantLabs
             String[] partes = data.split(",");
             if (partes.length != 6) {
                 return "Error: Formato de solicitud inválido. Se esperan 6 campos.";
             }
             
-            String requestId = partes[0];     // Nuevo: requestId
-            String semestre = partes[1];      // era partes[0]
-            String facultad = partes[2];      // era partes[1]
-            String programa = partes[3];      // era partes[2]
-            int cantSalones = Integer.parseInt(partes[4]); // era partes[3]
-            int cantLabs = Integer.parseInt(partes[5]);    // era partes[4]
+            String requestId = partes[0];
+            String semestre = partes[1];
+            String facultad = partes[2];
+            String programa = partes[3];
+            int cantSalones = Integer.parseInt(partes[4]);
+            int cantLabs = Integer.parseInt(partes[5]);
 
             if(!validacionData(semestre, facultad, programa, cantSalones, cantLabs)){
                 return requestId + ",Error: Los datos ingresados en la solicitud son inválidos!";
