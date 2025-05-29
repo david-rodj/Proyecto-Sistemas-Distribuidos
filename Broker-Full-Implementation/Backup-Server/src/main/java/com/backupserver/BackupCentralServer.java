@@ -1,4 +1,4 @@
-package com.example.backup;
+package com.backupserver;
 
 import org.zeromq.ZContext;
 import org.zeromq.ZMQ;
