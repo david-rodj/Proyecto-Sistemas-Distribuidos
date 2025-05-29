@@ -154,7 +154,7 @@ public class HealthCheckManager {
 
                         frontend.recv(0);
 
-                        byte[] msg = frontend.recv(0);
+                        String msg = frontend.recvStr(0);
 
 
 

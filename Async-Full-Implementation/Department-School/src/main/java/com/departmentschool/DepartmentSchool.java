@@ -63,7 +63,7 @@ public class DepartmentSchool {
                     );
 
                     backend.send(identity, ZMQ.SNDMORE);
-                    backend.send("", ZMQ.SNDMORE);
+                    //backend.send("", ZMQ.SNDMORE);
                     backend.send(enrichedRequest);
                     System.out.println("📤 Enviada al servidor: " + enrichedRequest);
 
