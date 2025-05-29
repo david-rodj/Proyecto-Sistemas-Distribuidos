@@ -35,9 +35,9 @@ public class DepartmentSchool {
 
             while (!Thread.currentThread().isInterrupted()) {
                 poller.poll();
-
+		byte[] identity = frontend.recv(0);
                 if (poller.pollin(0)) {
-                    byte[] identity = frontend.recv(0);
+                    
                     frontend.recv(0); // frame vacío
                     String request = frontend.recvStr();
 
