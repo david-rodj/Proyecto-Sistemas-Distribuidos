@@ -9,13 +9,10 @@ import java.util.UUID;
 
 public class DepartmentSchool {
 
-    public static String identityglobal;
-
     public static void main(String[] args) {
         if (args.length != 2) {
-            //System.out.println("Uso: java DepartmentSchool <FacultyName> <Semester>");
-            //return;
-            args = new String[]{"Facultad de Ingenieria", "2025-10"}; // Para pruebas
+            System.out.println("Uso: java DepartmentSchool <FacultyName> <Semester>");
+            return;
         }
 
         String facultyName = args[0];
@@ -46,7 +43,6 @@ public class DepartmentSchool {
                     String request = frontend.recvStr();
 
                     System.out.println(new String(identity));
-                    identityglobal = new String(identity);
 
                     // Esperado: programa,salones,laboratorios,semestre
                     String[] parts = request.split(",");
