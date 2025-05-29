@@ -72,11 +72,13 @@ public class DepartmentSchool {
 
                 String[] parts = solicitud.split(",");
 
-                if (parts.length == 5) {
+                if (parts.length == 4) {
+                String requestId = UUID.randomUUID().toString();
 
-                    String withContext = parts[0] + "," + semester + "," + facultyName + "," +
 
-                                         parts[1] + "," + parts[2] + "," + parts[3] + "," + parts[4];
+                    String withContext = requestId + "," + parts[1] + "," + facultyName + "," +
+
+                                         parts[0]  + "," + parts[2] + "," + parts[3];
 
                     brokerSocket.send(withContext);
 
