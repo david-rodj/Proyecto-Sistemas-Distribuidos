@@ -25,7 +25,7 @@ public class AcademicProgram {
             socket.connect("tcp://" + facultyIp + ":" + facultyPort);
             
             // Build message: format "programName;semester;numClassrooms;numLabs"
-            String request = String.join(";", programName, semester, 
+            String request = String.join(",", programName, semester, 
                                         String.valueOf(numClassrooms), 
                                         String.valueOf(numLabs));
             

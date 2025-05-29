@@ -2,29 +2,31 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    
     <modelVersion>4.0.0</modelVersion>
-
-    <groupId>com.departmentschool</groupId>
-    <artifactId>departmentschool</artifactId>
+    
+    <groupId>com.healthcheck</groupId>
+    <artifactId>healthcheck-broker</artifactId>
     <version>1.0-SNAPSHOT</version>
-
+    
     <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
-
+    
     <dependencies>
+        <!-- ZeroMQ Java binding - versión actualizada -->
         <dependency>
             <groupId>org.zeromq</groupId>
             <artifactId>jeromq</artifactId>
             <version>0.5.3</version>
         </dependency>
     </dependencies>
-
+    
     <build>
         <plugins>
-            <!-- Plugin de compilación explícito -->
+            <!-- Plugin de compilación con versión actualizada -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
@@ -34,8 +36,19 @@
                     <target>17</target>
                 </configuration>
             </plugin>
+            
+            <!-- Plugin exec corregido -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>3.1.0</version>
+                <configuration>
+                    <!-- CORREGIDO: El nombre de la clase principal -->
+                    <mainClass>com.healthcheck.HealthCheckManager</mainClass>
+                </configuration>
+            </plugin>
 
-            <!-- Plugin de assembly corregido -->
+            <!-- Plugin assembly para crear JAR ejecutable -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-assembly-plugin</artifactId>
@@ -49,8 +62,7 @@
                         <configuration>
                             <archive>
                                 <manifest>
-                                    <!-- CORREGIDO: El nombre de la clase principal -->
-                                    <mainClass>com.departmentschool.DepartmentSchool</mainClass>
+                                    <mainClass>com.healthcheck.HealthCheckManager</mainClass>
                                 </manifest>
                             </archive>
                             <descriptorRefs>
@@ -59,16 +71,6 @@
                         </configuration>
                     </execution>
                 </executions>
-            </plugin>
-
-            <!-- Plugin exec para ejecutar directamente -->
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>exec-maven-plugin</artifactId>
-                <version>3.1.0</version>
-                <configuration>
-                    <mainClass>com.departmentschool.DepartmentSchool</mainClass>
-                </configuration>
             </plugin>
         </plugins>
     </build>
