@@ -1,4 +1,4 @@
-package com.example;
+package com.backupserver;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -7,7 +7,7 @@ import java.sql.SQLException;
 public class ConexionDB {
 
     private static final String DB_URL = "jdbc:mysql://localhost:3306/DistribuidosDB";
-    private static final String USER = "host1"; 
+    private static final String USER = "Juan"; 
     private static final String PASSWORD = "12345678"; 
 
     public static Connection conectar() {
