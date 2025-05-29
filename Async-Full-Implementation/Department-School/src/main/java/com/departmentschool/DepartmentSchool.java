@@ -1,57 +1,149 @@
 package com.departmentschool;
 
+
+
 import org.zeromq.SocketType;
+
 import org.zeromq.ZContext;
+
 import org.zeromq.ZMQ;
+
+import org.zeromq.ZMQ.Poller;
+
+
+
 import java.util.UUID;
+
+
 
 public class DepartmentSchool {
 
+
+
     public static void main(String[] args) {
+
         if (args.length != 2) {
+
             System.out.println("Uso: java DepartmentSchool <FacultyName> <Semester>");
+
             return;
+
         }
+
+
 
         String facultyName = args[0];
+
         String semester = args[1];
-        String departmentPort = "5554";
-        String brokerAddress = "tcp://localhost:5555"; // HealthCheckManager
+
+        String listenPort = "5554";
+
+        String serverAddress = "tcp://localhost:5555"; // Broker o Servidor directo
+
+
 
         try (ZContext context = new ZContext()) {
-            // Socket REP para recibir de AcademicProgram (sin cambios)
-            ZMQ.Socket academicSocket = context.createSocket(SocketType.REP);
-            academicSocket.bind("tcp://*:" + departmentPort);
-            System.out.println("Esperando solicitudes de AcademicProgram en puerto " + departmentPort);
 
-            // Socket DEALER para comunicación asíncrona con HealthCheckManager
-            ZMQ.Socket brokerSocket = context.createSocket(SocketType.DEALER);
-            brokerSocket.connect(brokerAddress);
-            System.out.println("Conectado al HealthCheckManager en " + brokerAddress);
+            ZMQ.Socket frontend = context.createSocket(SocketType.ROUTER);
+
+            frontend.bind("tcp://*:" + listenPort);
+
+            System.out.println("📥 ROUTER escuchando a AcademicPrograms en puerto " + listenPort);
+
+
+
+            ZMQ.Socket backend = context.createSocket(SocketType.DEALER);
+
+            backend.connect(serverAddress);
+
+            System.out.println("🔁 DEALER conectado al servidor en " + serverAddress);
+
+
+
+            Poller poller = context.createPoller(2);
+
+            poller.register(frontend, Poller.POLLIN);
+
+            poller.register(backend, Poller.POLLIN);
+
+
 
             while (!Thread.currentThread().isInterrupted()) {
-                // Recibir solicitud del programa académico
-                String solicitud = academicSocket.recvStr();
-                System.out.println("Recibido de AcademicProgram: " + solicitud);
 
-                // Insertar semestre y facultad en el mensaje (ID, semestre, facultad, programa, salones, labs)
-                String[] parts = solicitud.split(",");
-                if (parts.length == 4) {
-                    String requestId = UUID.randomUUID().toString();
-                    String withContext = requestId + "," + parts[1] + "," + facultyName + "," +
-                                         parts[0] + "," + parts[2] + "," + parts[3];
+                poller.poll();
 
-                    // DEALER envía directamente sin frame de identidad
-                    brokerSocket.send(withContext);
-                    
-                    // DEALER recibe respuesta directamente
-                    String respuesta = brokerSocket.recvStr();
-                    System.out.println("Respuesta del servidor: " + respuesta);
-                    academicSocket.send(respuesta);
-                } else {
-                    academicSocket.send("Formato inválido desde AcademicProgram");
+
+
+                if (poller.pollin(0)) {
+
+                    byte[] identity = frontend.recv(0);
+
+                    frontend.recv(0); // frame vacío
+
+                    String request = frontend.recvStr();
+
+
+
+                    // Esperado: programa,salones,laboratorios
+
+                    String[] parts = request.split(",");
+
+                    if (parts.length == 3) {
+
+                        String requestId = UUID.randomUUID().toString();
+
+                        String enrichedRequest = String.join(",", requestId, semester, facultyName,
+
+                                                              parts[0], parts[1], parts[2]);
+
+
+
+                        backend.send(identity, ZMQ.SNDMORE);
+
+                        backend.send("", ZMQ.SNDMORE);
+
+                        backend.send(enrichedRequest);
+
+                        System.out.println("📤 Enviada al servidor: " + enrichedRequest);
+
+                    } else {
+
+                        frontend.send(identity, ZMQ.SNDMORE);
+
+                        frontend.send("", ZMQ.SNDMORE);
+
+                        frontend.send("Formato inválido. Se esperaban: programa,salones,laboratorios");
+
+                    }
+
                 }
+
+
+
+                if (poller.pollin(1)) {
+
+                    byte[] identity = backend.recv(0);
+
+                    backend.recv(0); // frame vacío
+
+                    String reply = backend.recvStr();
+
+
+
+                    frontend.send(identity, ZMQ.SNDMORE);
+
+                    frontend.send("", ZMQ.SNDMORE);
+
+                    frontend.send(reply);
+
+                    System.out.println("📨 Enviada a AcademicProgram: " + reply);
+
+                }
+
             }
+
         }
+
     }
+
 }
