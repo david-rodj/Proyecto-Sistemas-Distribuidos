@@ -21,8 +21,8 @@ import java.util.Map;
 public class HealthCheckManager {
     
     // Server configuration (adjust IPs according to your infrastructure)
-    private static final String PRIMARY_SERVER = "tcp://192.168.1.103:5556";   // Primary server (Machine 3)
-    private static final String BACKUP_SERVER = "tcp://192.168.1.101:5556";    // Backup server (Machine 1)
+    private static final String PRIMARY_SERVER = "tcp://10.43.103.67:5556";   // Primary server (Machine 3)
+    private static final String BACKUP_SERVER = "tcp://10.43.103.241:5556";    // Backup server (Machine 1)
     private static final int HEALTHCHECK_INTERVAL = 5; // seconds
     private static final int TIMEOUT_MS = 3000; // 3 seconds timeout
     private static final int FACULTY_PORT = 5555; // Port where faculties connect
