@@ -95,29 +95,29 @@ public class DepartmentSchool {
                     }
                     
                     // Generate unique request ID
-                    String requestId = UUID.randomUUID().toString();
-                    
-                    // Store request ID and program name for later correlation
-                    pendingRequests.put(requestId, programName);
-                    
-                    // Send request to central server (this depends on async/broker pattern)
-                    String serverMessage = String.join(";", 
-                                             requestId,
-                                             departmentName, 
-                                             programName,
-                                             semester, 
-                                             String.valueOf(classrooms), 
-                                             String.valueOf(laboratories));
-                    
-                    serverSocket.sendMore("");  // Empty frame for DEALER socket
-                    serverSocket.send(serverMessage, 0);
-                    System.out.println("Sent to central server: " + serverMessage);
-                    
-                    // Immediate response to academic program (initial ACK)
-                    programSocket.send("Request received. Processing... (ID: " + requestId + ")", 0);
-                    
-                    // Log the request
-                    logRequest(departmentName, programName, semester, classrooms, laboratories, requestId);
+		String requestId = UUID.randomUUID().toString();
+
+		// Store request ID and program name for later correlation
+		pendingRequests.put(requestId, programName);
+
+		// Send request to central server (formato: requestId,semestre,facultad,programa,cantSalones,cantLabs)
+		String serverMessage = String.join(",", 
+					 requestId,              // requestId para correlación
+					 semester,               // semestre  
+					 departmentName,         // facultad
+					 programName,            // programa
+					 String.valueOf(classrooms),    // cantSalones
+					 String.valueOf(laboratories)); // cantLabs
+
+		serverSocket.sendMore("");  // Empty frame for DEALER socket
+		serverSocket.send(serverMessage, 0);
+		System.out.println("Sent to central server: " + serverMessage);
+
+		// Immediate response to academic program (initial ACK)
+		programSocket.send("Request received. Processing... (ID: " + requestId + ")", 0);
+
+		// Log the request
+		logRequest(departmentName, programName, semester, classrooms, laboratories, requestId);
                 }
                 
                 // Handle responses from the central server

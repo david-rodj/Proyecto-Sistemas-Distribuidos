@@ -50,55 +50,108 @@ public class ServidorCentral {
         }
     }
 
-    private static String procesarSolicitud(String data) {
-        try {
+	private static String procesarSolicitud(String data) {
+	    try {
+		// Ahora esperamos: requestId,semestre,facultad,programa,cantSalones,cantLabs
+		String[] partes = data.split(",");
+		if (partes.length != 6) {
+		    return "Error: Formato de solicitud inválido. Se esperan 6 campos.";
+		}
+		
+		String requestId = partes[0];     // Nuevo: requestId
+		String semestre = partes[1];      // era partes[0]
+		String facultad = partes[2];      // era partes[1]
+		String programa = partes[3];      // era partes[2]
+		int cantSalones = Integer.parseInt(partes[4]); // era partes[3]
+		int cantLabs = Integer.parseInt(partes[5]);    // era partes[4]
 
-            if(!validacionData(data)){
-                throw new Exception("Los datos ingresados en la solicitud son invalidos!");
-            }
-            String[] partes = data.split(",");
-            String semestre = partes[0];
-            String facultad = partes[1];
-            String programa = partes[2];
-            int cantSalones = Integer.parseInt(partes[3]);
-            int cantLabs = Integer.parseInt(partes[4]);
+		if(!validacionData(semestre, facultad, programa, cantSalones, cantLabs)){
+		    return requestId + ",Error: Los datos ingresados en la solicitud son inválidos!";
+		}
 
-            Connection conn = ConexionDB.conectar();
+		Connection conn = ConexionDB.conectar();
 
-            int salonesDisponibles = contarAulas(conn, "Salon", semestre, "Disponible");
-            int laboratoriosDisponibles = contarAulas(conn, "Laboratorio", semestre, "Disponible");
+		int salonesDisponibles = contarAulas(conn, "Salon", semestre, "Disponible");
+		int laboratoriosDisponibles = contarAulas(conn, "Laboratorio", semestre, "Disponible");
 
-            boolean asignadoSalones = salonesDisponibles >= cantSalones;
-            boolean asignadoLabs = laboratoriosDisponibles >= cantLabs;
+		boolean asignadoSalones = salonesDisponibles >= cantSalones;
+		boolean asignadoLabs = laboratoriosDisponibles >= cantLabs;
 
-            if (asignadoSalones) {
-                asignarAulas(conn, programa, "Salon", cantSalones);
-            }
+		if (asignadoSalones) {
+		    asignarAulas(conn, programa, "Salon", cantSalones);
+		}
 
-            if (!asignadoLabs && (salonesDisponibles - cantSalones) >= (cantLabs - laboratoriosDisponibles)) {
-                asignarAulas(conn, programa, "Laboratorio", laboratoriosDisponibles);
-                 asignarAulas(conn, programa, "Salon", cantLabs - laboratoriosDisponibles);
-                asignadoLabs = true;
-            } else if (asignadoLabs) {
-                asignarAulas(conn, programa, "Laboratorio", cantLabs);
-            }
+		if (!asignadoLabs && (salonesDisponibles - cantSalones) >= (cantLabs - laboratoriosDisponibles)) {
+		    asignarAulas(conn, programa, "Laboratorio", laboratoriosDisponibles);
+		    asignarAulas(conn, programa, "Salon", cantLabs - laboratoriosDisponibles);
+		    asignadoLabs = true;
+		} else if (asignadoLabs) {
+		    asignarAulas(conn, programa, "Laboratorio", cantLabs);
+		}
 
-            String status;
-            if (asignadoSalones && asignadoLabs) {
-                status = "Aprobada";
-            } else {
-                System.err.println("⚠️ ALERTA: No hay suficientes aulas para " + programa + " en " + semestre);
-                status = "Denegada";
-            }
+		String status;
+		if (asignadoSalones && asignadoLabs) {
+		    status = "Aprobada";
+		} else {
+		    System.err.println("⚠️ ALERTA: No hay suficientes aulas para " + programa + " en " + semestre);
+		    status = "Denegada";
+		}
 
-            insertarSolicitud(conn, semestre, facultad, programa, cantSalones, cantLabs, status);
-            conn.close();
-            return "Resultado: " + status;
-        } catch (Exception e) {
-            e.printStackTrace();
-            return "Error procesando solicitud: " + e.getMessage();
+		insertarSolicitud(conn, semestre, facultad, programa, cantSalones, cantLabs, status);
+		conn.close();
+		
+		// Incluir requestId en la respuesta para correlación
+		return requestId + ",Resultado: " + status;
+		
+	    } catch (Exception e) {
+		e.printStackTrace();
+		return "Error,Error procesando solicitud: " + e.getMessage();
+	    }
+	}
+
+// Método de validación actualizado para recibir parámetros individuales
+private static boolean validacionData(String semestre, String facultad, String programa, int cantSalones, int cantLabs){
+    try{
+        Connection conn = ConexionDB.conectar();
+
+        // Validar semestre
+        if(!semestre.equals("2025-10") && !semestre.equals("2025-20")){
+            throw new Exception("Semestre ingresado inválido");
         }
+
+        // Validar facultad
+        String sql = "SELECT id FROM Facultad WHERE nombre = ?";
+        try(PreparedStatement ps = conn.prepareStatement(sql)){
+            ps.setString(1, facultad);
+            ResultSet rs = ps.executeQuery();
+            if(!rs.next()){
+                throw new Exception("La facultad ingresada no existe");
+            }
+        }
+
+        // Validar programa
+        sql = "SELECT id FROM Programa WHERE nombre = ?";
+        try(PreparedStatement ps = conn.prepareStatement(sql)){
+            ps.setString(1, programa);
+            ResultSet rs = ps.executeQuery();
+            if(!rs.next()){
+                throw new Exception("El Programa ingresado no existe");
+            }
+        }
+
+        // Validar cantidades
+        if(cantSalones < 0 || cantLabs < 0){
+            throw new Exception("Cantidad de Salones o Laboratorios inválida");
+        }
+
+        conn.close();
+        return true;
+
+    }catch(Exception e){
+        System.out.println("Error procesando solicitud: " + e.getMessage());
+        return false;
     }
+}
 
     private static int contarAulas(Connection conn, String tipo, String semestre, String estado) throws SQLException {
         String sql = "SELECT COUNT(*) FROM Aulas a WHERE a.tipo = ? AND a.status = ? AND a.semestre = ? AND a.programa_id IS NULL";
