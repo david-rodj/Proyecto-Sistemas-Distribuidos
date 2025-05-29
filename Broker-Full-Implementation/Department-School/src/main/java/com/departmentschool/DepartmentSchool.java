@@ -8,6 +8,8 @@ import org.zeromq.ZContext;
 
 import org.zeromq.ZMQ;
 
+import java.util.UUID;
+
 
 
 public class DepartmentSchool {
