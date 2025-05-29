@@ -74,7 +74,7 @@ public class BackupCentralServer {
 
         new Thread(() -> {
 
-            try (ZContext context = new ZContext()) {
+            try (ZContext healthContext = new ZContext()) {
 
                 ZMQ.Socket responder = context.createSocket(SocketType.REP);
 
